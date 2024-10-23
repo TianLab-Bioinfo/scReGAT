@@ -68,7 +68,12 @@ for i, sample in tqdm(enumerate(dataset_graph), total=len(dataset_graph), desc='
     # sample.edge_index[0] = torch.cat((sample.edge_index[0], torch.tensor([21068])))
     # sample.edge_index[1] = torch.cat((sample.edge_index[1], torch.tensor([0])))
     # 你当然也可以直接删除边，scReGAT采用的架构可以无视图的点边结构
-  
+
+
+    # 当然我们也可以在这里直接修改细胞的target基因表达y_exp
+    # sample.y_exp = torch.tensor([新的值array])就可以了
+    # 意味着我们可以轻松改成单细胞表达
+
     if sample.cell in test_cell:
         test_graph.append(sample)
     else:
@@ -76,7 +81,7 @@ for i, sample in tqdm(enumerate(dataset_graph), total=len(dataset_graph), desc='
 
 
 
-# 下面是模型
+# 下面是模型，这是KL散度版本
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -216,6 +221,8 @@ for epoch in range(num_epoch):
             gene_num, 
             sample.id_vec.to(device)
         )
+
+        # 我们只考虑那些活性 > 0的promoter对应的基因表达，因为这样可以避免将0纳入
         index = torch.where(sample.x[:gene_num] > 0)[0]
         gene_pre_log_prob = torch.log_softmax(gene_pre[index].flatten(), dim=-1)  
         loss = -loss_exp(gene_pre[index].flatten(), sample.y_exp[index].to(device)) 
@@ -252,3 +259,4 @@ with torch.no_grad():
 
 # cell_link_mt 这个矩阵是[n_cell * n_edge]
 # 其中边的与sample.edge_index的索引完全一致
+# cell_type是你用于测试用的细胞类别
