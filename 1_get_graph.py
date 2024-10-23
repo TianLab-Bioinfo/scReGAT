@@ -13,6 +13,10 @@ adata_rna = sc.read_h5ad(RNA_h5ad_file)
 adata_rna.obs['celltype'] = adata_rna.obs['celltype'].astype('object')
 df_rna = sum_counts(adata_rna,by = 'celltype',marker_gene_num=300)
 
+# Please ensure that your gene characters are gene symbols and not gene IDs
+# or you can transfer gene id to gene symbols by gene annotation file
+
+
 dataset_atac, dataset_graph = prepare_model_input(
     path_data_root = './' ,
     file_atac = atac_file, 
