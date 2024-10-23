@@ -60,7 +60,7 @@ for i, sample in tqdm(enumerate(dataset_graph), total=len(dataset_graph), desc='
     # 
     # sample.edge_index
     # tensor([[21068, 21083, 21084,  ..., 56014, 56041, 56043],
-        [    0,     1,     1,  ...,  1528,  1529,  1529]], device='cuda:3')
+    #     [    0,     1,     1,  ...,  1528,  1529,  1529]], device='cuda:3')
     # 0就代表了dataset_atac.array_peak[0]: 'ACAP3'
     # 21068就代表了dataset_atac.array_peak[21068] : 'chr1-1307926-1308733'
     # 
