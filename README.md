@@ -1,6 +1,6 @@
 ### Welcome to scReGAT
 
-#### Steps to initialize DNABERT-2:
+#### Steps to use scReGAT:
 
 1. **Download DNABERT-2**:
    - Visit: [DNABERT-2 117M](https://huggingface.co/zhihan1996/DNABERT-2-117M/tree/main)
