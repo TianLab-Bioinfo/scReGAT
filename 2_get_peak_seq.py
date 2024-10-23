@@ -47,3 +47,6 @@ combined_data = adjusted_promoter + adjusted_peaks
 with open('center.bed', 'w') as f:
     for chrom, start, end in combined_data:
         f.write(f"{chrom}\t{start}\t{end}\n")   
+
+# next, user should run bedtools in your device to get .fa.
+bedtools getfasta -fi hg38.fa -bed ~/scReGAT/10x/center.bed -fo ~/scReGAT/10x/center.fa
