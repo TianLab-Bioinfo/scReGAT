@@ -232,7 +232,7 @@ for epoch in range(num_epoch):
         attention_variance = torch.var(atten[1], dim=1).mean()
         attention_loss = attention_reg_weight * (2.0 - attention_variance)  # 鼓励方差
         edge_temp = model.edge.flatten()
-        loss2 = criterion_sparse(edge_temp)
+        loss2 = sparse_loss_weight * criterion_sparse(edge_temp)
         loss = loss1 + attention_loss + loss_cell + loss2
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
