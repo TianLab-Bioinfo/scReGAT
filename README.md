@@ -1,5 +1,5 @@
 ### Latest: <span style="color:red">请参考Cortex_fig.ipynb</span>
-
+### 该版本无需DNABERT-2，支持批次训练
 ### 注意将模型参数改为基因数量，以及细胞类别数：
 ```python
 self.NN_cell_type = nn.Sequential(
