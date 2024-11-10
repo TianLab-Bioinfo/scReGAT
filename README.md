@@ -1,4 +1,4 @@
-### 请参考Cortex—fig.ipynb
+### Latest: <span style="color:red">请参考Cortex—fig.ipynb</span>
 ### 注意将模型参数改为基因数量，以及细胞类别数：
    self.NN_cell_type = nn.Sequential(
             nn.Linear(<b>1530</b>, 128),
