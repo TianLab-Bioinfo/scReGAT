@@ -12,7 +12,7 @@ self.NN_cell_type = nn.Sequential(
     nn.Linear(64, <b>这里改为细胞类别数，例如：6</b>),
     nn.Softmax()
 )
-
+```
 
 ### Welcome to scReGAT
 
