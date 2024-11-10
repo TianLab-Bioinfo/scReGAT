@@ -1,3 +1,16 @@
+### 请参考Cortex—fig.ipynb
+### 注意将模型参数改为基因数量，以及细胞类别数：
+   self.NN_cell_type = nn.Sequential(
+            nn.Linear(<b>1530</b>, 128),
+            nn.LayerNorm(128),
+            nn.LeakyReLU(),
+            nn.Linear(128, 64),
+            nn.LayerNorm(64),
+            nn.LeakyReLU(),
+            nn.Linear(64, <b>6</b>),
+            nn.Softmax()
+        )
+
 ### Welcome to scReGAT
 
 #### Steps to use scReGAT:
