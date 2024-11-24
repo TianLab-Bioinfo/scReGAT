@@ -23,8 +23,19 @@
 
 6. **Score the binding intensity** based on attention scores and promoter activity.
 
-   --R
-   pearson_corr <- cor(faithful$eruptions, faithful$waiting, method = "pearson")
+---
+
+**Summary**:
+
+Embark on your journey with scReGAT by initializing DNABERT-2. Begin by constructing the graph and obtaining the necessary sequences for each peak. Use DNABERT-2 to generate sequence embeddings. When running the model, choose between KL Divergence (recommended) or MES loss for optimal performance. Finally, evaluate the binding intensity based on attention scores and promoter activity.
+
+Happy coding! 🚀
+
+
+
+```{r}
+# 计算皮尔逊相关系数
+pearson_corr <- cor(faithful$eruptions, faithful$waiting, method = "pearson")
 
 # 计算斯皮尔曼相关系数
 spearman_corr <- cor(faithful$eruptions, faithful$waiting, method = "spearman")
@@ -35,11 +46,3 @@ kendall_corr <- cor(faithful$eruptions, faithful$waiting, method = "kendall")
 # 计算互信息
 mutual_info <- mutinformation(discretize(faithful$eruptions), discretize(faithful$waiting))
 
-
----
-
-**Summary**:
-
-Embark on your journey with scReGAT by initializing DNABERT-2. Begin by constructing the graph and obtaining the necessary sequences for each peak. Use DNABERT-2 to generate sequence embeddings. When running the model, choose between KL Divergence (recommended) or MES loss for optimal performance. Finally, evaluate the binding intensity based on attention scores and promoter activity.
-
-Happy coding! 🚀
