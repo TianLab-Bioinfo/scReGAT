@@ -34,15 +34,22 @@ Happy coding! 🚀
 
 
 ```{r}
-# 计算皮尔逊相关系数
-pearson_corr <- cor(faithful$eruptions, faithful$waiting, method = "pearson")
+set.seed(30096)
 
-# 计算斯皮尔曼相关系数
-spearman_corr <- cor(faithful$eruptions, faithful$waiting, method = "spearman")
+# 进行1000次置换检验
+n_permutations <- 1000
+perm_mutual_info <- numeric(n_permutations)
 
-# 计算肯德尔相关系数
-kendall_corr <- cor(faithful$eruptions, faithful$waiting, method = "kendall")
+for (i in 1:n_permutations) {
+  # 随机打乱waiting数据
+  shuffled_waiting <- sample(faithful$waiting)
+  
+  # 计算每次置换的互信息
+  perm_mutual_info[i] <- mutinformation(discretize(faithful$eruptions), discretize(shuffled_waiting))
+}
 
-# 计算互信息
-mutual_info <- mutinformation(discretize(faithful$eruptions), discretize(faithful$waiting))
+# 计算p值
+observed_p_value <- mean(perm_mutual_info >= mutual_info)
 
+# 输出p值
+cat("P-value from permutation test:", observed_p_value, "\n")
