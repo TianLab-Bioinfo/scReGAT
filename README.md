@@ -23,6 +23,19 @@
 
 6. **Score the binding intensity** based on attention scores and promoter activity.
 
+   --R
+   pearson_corr <- cor(faithful$eruptions, faithful$waiting, method = "pearson")
+
+# 计算斯皮尔曼相关系数
+spearman_corr <- cor(faithful$eruptions, faithful$waiting, method = "spearman")
+
+# 计算肯德尔相关系数
+kendall_corr <- cor(faithful$eruptions, faithful$waiting, method = "kendall")
+
+# 计算互信息
+mutual_info <- mutinformation(discretize(faithful$eruptions), discretize(faithful$waiting))
+
+
 ---
 
 **Summary**:
