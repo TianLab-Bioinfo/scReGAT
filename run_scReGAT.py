@@ -423,7 +423,8 @@ def preprocess_graph(dataset_atac, graph, test_cell, max_random_sample=500, seed
     train_graph_1, test_graph, train_cell_type_1, test_cell_type = process_samples(dataset_atac, dataset_graph, test_cell)
     torch_vector = train_graph_1[0].id_vec
     train_graph_2, train_cell_type_2 = process_samples_add_random(graph, torch_vector, max_samples=max_random_sample)
-    train_graph = train_graph_1 + train_graph_2
-    train_cell_type = train_cell_type_1 + train_cell_type_2
-    balanced_train_graph, balanced_train_cell_type =  balance_classes(train_graph, train_cell_type, seed=seed)
+    balanced_train_graph, balanced_train_cell_type =  balance_classes(train_graph_1, train_cell_type_1, seed=seed)
+
+    balanced_train_graph = balanced_train_graph + train_graph_2
+    balanced_train_cell_type = balanced_train_cell_type + train_cell_type_2
     return balanced_train_graph, test_graph
