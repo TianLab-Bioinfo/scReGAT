@@ -1,36 +1,53 @@
 # Overview
 
-In Manuscript v2, we implemented necessary improvements to our Summarizer. All relevant textual data involved in this improvement are provided in this file dir.
+All relevant textual and network data involved in regulatory network construction and downstream analysis are provided in this directory.
 
 ## Data Sources
 
-### Orphanet Dataset (`DeepSeek_R1_671B_Response_Orphanet.csv`)
+### cRE–Gene Interaction Datasets
 
-| Column | Description |
-| --- | --- |
-| **Orphanet_ID** | Unique identifier assigned by Orphanet for diseases |
-| **Definition** | Disease definition text directly sourced from the 'Definition' section of Orphanet disease entries |
-| **HPO_Definition** | Concatenated text of definitions from all Human Phenotype Ontology (HPO) terms annotated to the disease |
-| **Related_HPO_Terms** | Specific HPO terminology associated with the disease |
-| **Extracted_Content** | Text output from DeepSeek-R1-671B, generated using input format: `{Prompt + HPO_Description}` |
+| File | Description |
+|------|-------------|
+| `PO.txt` | Promoter–Other regulatory element (cRE) links integrated from Hi-C data; used to map distal cREs to gene promoters. |
+| `PP.txt` | Promoter–Promoter interactions inferred from Hi-C data; used to capture co-regulatory promoter coordination. |
+| `all_tissue_SNP_Gene.txt.gz` | GTEx-derived SNP–gene linkage data across all tissues; used for integrating genetic variants with gene regulation. |
 
-### OMIM Dataset (`DeepSeek_R1_671B_Response_OMIM.csv`)
+### TF–Gene Regulation Datasets
 
-| Column | Description |
-| --- | --- |
-| **OMIM_ID** | Unique identifier from Online Mendelian Inheritance in Man (OMIM) database for genetic disorders |
-| **Description** | Disease description text sourced from OMIM official entries |
-| **HPO_Description** | Concatenated definitions of all HPO terms annotated to the disease |
-| **Related_HPO_Terms** | Associated HPO terminology for the disease |
-| **Extracted_content** | DeepSeek-R1-671B output text generated from `{Prompt + HPO_Description}` input |
+| File | Description |
+|------|-------------|
+| `trrust_rawdata.human.tsv` | Transcription factor–target gene interactions curated from the TRRUST database (human only). |
+| `TF_Gene_tissue_cutoff1.csv` | TF–gene regulatory associations derived from ChEA3 ChIP-seq datasets across multiple tissues; filtered using cutoff = 1. |
 
-##
+### Core Reference Files
 
-## Bio-Medical-3B-CoT
+| File | Description |
+|------|-------------|
+| `hg38.chrom.sizes` | Chromosome size reference file for the hg38 human genome build; required for genomic range operations. |
+| `genes.protein.tss.tsv` | Table of protein-coding genes with annotated transcription start sites (TSS); used for promoter and gene mapping. |
 
-The model parameters are available at:  
-[ContactDoctor/Bio-Medical-3B-CoT-012025 · Hugging Face](https://huggingface.co/ContactDoctor/Bio-Medical-3B-CoT-012025)
+### Disease-Associated Cohort File
 
-## Additional Resources
+| File | Description |
+|------|-------------|
+| `Cohort_survival.tat.bz2` | Patient survival cohort for neuroblastoma (case group); used for survival analysis and case-based prioritization. |
 
-All relevant training files and sample training code are provided in the associated folder. For complete methodological details, please refer to our manuscript.
+## GWAS Datasets (`/GWAS/` directory)
+
+The `GWAS` subfolder includes disease-associated SNP datasets downloaded from public genome-wide association studies:
+
+| Subfolder | Description |
+|-----------|-------------|
+| `SCZ/` | Schizophrenia (SCZ) risk loci from GWAS summary statistics. |
+| `AD/` | Alzheimer's disease (AD) GWAS SNP data. |
+| `MS/` | Multiple sclerosis (MS) GWAS-associated variant information. |
+
+## Cell Type–Specific cRE–Gene Interactions (`/celltype_specific_cRE_interactions/` directory)
+
+This folder contains cRE–gene interaction maps validated by PLAC-seq experiments across brain cell types:
+
+| Subfolder | Description |
+|-----------|-------------|
+| `microglia/` | Experimentally supported enhancer–promoter links specific to microglia. |
+| `neurons/` | PLAC-seq-based cRE–gene interactions in neurons. |
+| `oligodendrocytes/` | Oligodendrocyte-specific cRE–gene regulatory links. |
