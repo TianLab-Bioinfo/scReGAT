@@ -19,7 +19,7 @@ All relevant textual and network data involved in regulatory network constructio
 | `trrust_rawdata.human.tsv` | Transcription factor–target gene interactions curated from the TRRUST database (human only). |
 | `TF_Gene_tissue_cutoff1.csv` | TF–gene regulatory associations derived from ChEA3 ChIP-seq datasets across multiple tissues; filtered using cutoff = 1. |
 
-### Core Reference Files
+### Reference Files
 
 | File | Description |
 |------|-------------|
@@ -39,7 +39,7 @@ The `GWAS` subfolder includes disease-associated SNP datasets downloaded from pu
 | Subfolder | Description |
 |-----------|-------------|
 | `SCZ/` | Schizophrenia (SCZ) risk loci from GWAS summary statistics. |
-| `AD/` | Alzheimer's disease (AD) GWAS SNP data. |
+| `AD/` | Alzheimer's disease (AD) GWAS-associated variant information. |
 | `MS/` | Multiple sclerosis (MS) GWAS-associated variant information. |
 
 ## Cell Type–Specific cRE–Gene Interactions (`/celltype_specific_cRE_interactions/` directory)
@@ -48,6 +48,6 @@ This folder contains cRE–gene interaction maps validated by PLAC-seq experimen
 
 | Subfolder | Description |
 |-----------|-------------|
-| `microglia/` | Experimentally supported enhancer–promoter links specific to microglia. |
-| `neurons/` | PLAC-seq-based cRE–gene interactions in neurons. |
+| `microglia/` | Microglia-specific cRE–gene regulatory links. |
+| `neurons/` | Neurons-specific cRE–gene regulatory links. |
 | `oligodendrocytes/` | Oligodendrocyte-specific cRE–gene regulatory links. |
