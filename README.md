@@ -70,6 +70,7 @@ If you encounter any issues during use or have any suggestions, feel free to con
 
 - Baole Wen: blwen24@m.fudan.edu.cn
 - Yi Long : longy25@m.fudan.edu.cn
+
   You can also submit an issue on GitHub.
 
 For more information about our research, please visit our lab website: [Tian Lab](https://tianlab-bioinfo.github.io/).
