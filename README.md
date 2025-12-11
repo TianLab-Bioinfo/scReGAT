@@ -20,7 +20,7 @@ scReGAT has been benchmarked across five single-cell multi-omics datasets and ha
 
 The scReGAT framework is composed of two main stages: knowledge-guided regulatory graph (kRG) construction and a graph attention network (GAT) for gene expression prediction and regulatory interaction scoring.
 
-![Architecture Image](docs/Figure-1-1.png)
+![Architecture Image](docs/Fig1.jpg)
 
 _Figure 1: An overview of the scReGAT framework, from data integration and graph construction to the GAT-based model for predicting gene expression and inferring regulatory probabilities._
 
