@@ -59,6 +59,7 @@ git clone https://github.com/TianLab-Bioinfo/scReGAT.git
 cd scReGAT
 pip install .
 ```
+recommend install pybedtools using `conda install --channel conda-forge --channel bioconda pybedtools`
 
 ## Qucik Start
 
