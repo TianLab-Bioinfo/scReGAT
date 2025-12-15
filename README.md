@@ -2,7 +2,7 @@
 
 This repository contains the code for scReGAT, a deep learning framework for predicting long-range gene regulation at single-cell resolution, as described in our paper:
 
-**Leveraging knowledge of regulatory interactions to predicting long-range gene regulation at single cell resolution with scReGAT** .
+**Leveraging knowledge of regulatory interactions to predicting long-range gene regulation at single cell resolution with scReGAT**
 
 ## Introduction
 
@@ -59,10 +59,14 @@ git clone https://github.com/TianLab-Bioinfo/scReGAT.git
 cd scReGAT
 pip install .
 ```
+recommend install pybedtools using `conda install --channel conda-forge --channel bioconda pybedtools`
 
 ## Qucik Start
 
-Please see `notebook/train_model_MFG.ipynb` and `notebook/train_model_Pan.ipynb` for examples.
+1. Download `data.zip` from [here](https://drive.google.com/file/d/1tG2u2foUMJkunb-LBt_mhtm-nN3s59E3/view?usp=sharing) and unzip it to the `data/` directory.
+2. Download `data.tar.gz` from [here](https://drive.google.com/file/d/1eO3KzlA6ZK_v2ogYejiX1xBPZwXVOGcK/view?usp=sharing) and unzip it to the `data/` directory.
+
+Please see `notebook/` for examples.
 
 ## Contact Us
 
