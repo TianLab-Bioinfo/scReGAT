@@ -18,27 +18,27 @@
 
 # --- Core Data Science & Scientific Computing ---
 numpy==1.24.4
-pandas
-scipy
-scikit-learn
-statsmodels
-numba
+pandas==1.5.3
+scipy==1.11.4
+scikit-learn==1.7.2
+statsmodels==0.14.6
+numba==0.57.1
 
 # --- Plotting & Utilities ---
-h5py
-tqdm
-matplotlib
-seaborn
-leidenalg
-python-igraph
+h5py==3.10.0
+tqdm==4.67.1
+matplotlib==3.10.8
+seaborn==0.13.2
+leidenalg==0.11.0
+python-igraph==1.0.0
 
 # --- Single-Cell & Bioinformatics Stack ---
 scanpy==1.9.8
 episcanpy==0.3.1
 anndata==0.9.2
 cosg==1.0.1
-pybedtools==0.10.0
+# pybedtools==0.10.0
 pysam==0.22.1
 
 # --- Other Dependencies ---
-ipykernel
+ipykernel==7.1.0

@@ -1,7 +1,9 @@
 import os
 import random
 import itertools
+import shutil
 from collections import defaultdict
+from pathlib import Path
 from typing import Optional, Mapping, List, Union
 
 import numpy as np
@@ -21,6 +23,24 @@ import sklearn
 from statsmodels.distributions.empirical_distribution import ECDF
 
 import cosg
+
+
+def _get_data_dir() -> Path:
+    """
+    获取数据目录的路径。
+    
+    使用相对于包目录的 data/ 目录（项目根目录下的 data/ 文件夹）。
+    
+    Returns:
+        Path: 数据目录的路径对象
+    """
+    # 获取当前文件的目录（scregat/）
+    current_file = Path(__file__).resolve()
+    package_dir = current_file.parent  # scregat/
+    project_root = package_dir.parent  # scReGAT/
+    data_dir = project_root / "data"
+    
+    return data_dir
 
 
 def sum_counts(adata, by="celltype", use_marker_genes=True, marker_gene_num=300):
@@ -143,25 +163,31 @@ def lsi(
 
 
 class ATACDataset(object):
-    def __init__(self, adata_atac, raw_filename: str, data_root: str, file_chrom: str):
-        self.data_root = data_root
+    def __init__(self, adata_atac, raw_filename: str, data_root: Union[str, Path], file_chrom: Union[str, Path]):
+        self.data_root = Path(data_root)
         self.raw_filename = raw_filename
         self.adata = adata_atac
         # self.adata.raw = self.adata.copy()
-        self.path_process = os.path.join(data_root, "processed_files")
-        if not os.path.exists(self.path_process):
-            os.mkdir(self.path_process)
-        self.file_peaks_sort = os.path.join(self.path_process, "peaks.sort.bed")
-        if os.path.exists(self.file_peaks_sort):
-            os.remove(self.file_peaks_sort)
-        self.file_chrom = file_chrom
-        # tools - these should be provided by the user or set via environment variables
-        # Default to None, user should set these paths if needed
-        self.bedtools = os.environ.get(
-            "BEDTOOLS_PATH", "bedtools"
-        )  # Default to system bedtools
-        self.liftover = os.environ.get("LIFTOVER_PATH", None)
-        self.file_chain = os.environ.get("LIFTOVER_CHAIN", None)
+        self.path_process = self.data_root / "processed_files"
+        self.path_process.mkdir(parents=True, exist_ok=True)
+        self.file_peaks_sort = self.path_process / "peaks.sort.bed"
+        if self.file_peaks_sort.exists():
+            self.file_peaks_sort.unlink()
+        self.file_chrom = Path(file_chrom)
+        # 工具路径配置 - 自动查找或使用默认路径
+        bedtools_path = shutil.which("bedtools")
+        if bedtools_path:
+            self.bedtools = bedtools_path
+        else:
+            # 如果PATH中找不到，尝试使用scReGAT环境的默认路径
+            default_bedtools = "/opt/conda/envs/scReGAT/bin/bedtools"
+            if Path(default_bedtools).exists():
+                self.bedtools = default_bedtools
+            else:
+                # 最后回退到系统命令（假设在PATH中）
+                self.bedtools = "bedtools"
+        self.liftover = None  # liftover工具路径，如需要可通过属性设置
+        self.file_chain = None  # liftover chain文件路径，如需要可通过属性设置
         self.generate_peaks_file()
         self.all_promoter_genes = None
         self.all_proximal_genes = None
@@ -182,7 +208,7 @@ class ATACDataset(object):
     def generate_peaks_file(self):
         df_chrom = pd.read_csv(self.file_chrom, sep="\t", header=None, index_col=0)
         df_chrom = df_chrom.iloc[:24]
-        file_peaks_atac = os.path.join(self.path_process, "peaks.bed")
+        file_peaks_atac = self.path_process / "peaks.bed"
         fmt_peak = "{chrom_peak}\t{start_peak}\t{end_peak}\t{peak_id}\n"
         with open(file_peaks_atac, "w") as w_peak:
             for one_peak in self.adata.var.index:
@@ -196,17 +222,99 @@ class ATACDataset(object):
 
         os.system(f"{self.bedtools} sort -i {file_peaks_atac} > {self.file_peaks_sort}")
 
-    def hg19tohg38(self):
-        path_peak = os.path.join(self.data_root, "peaks_process")
-        if not os.path.exists(path_peak):
-            os.mkdir(path_peak)
+    def hg19tohg38(self, liftover_path: Optional[Union[str, Path]] = None, chain_file: Optional[Union[str, Path]] = None):
+        """
+        将hg19坐标转换为hg38坐标。
+        
+        Parameters:
+        -----------
+        liftover_path : str or Path, optional
+            liftover工具的可执行文件路径。如果为None，使用self.liftover（默认为None）
+        chain_file : str or Path, optional
+            liftover chain文件路径。如果为None，使用self.file_chain（默认为None）
+        """
+        if liftover_path is None:
+            liftover_path = self.liftover
+        if chain_file is None:
+            chain_file = self.file_chain
+            
+        if liftover_path is None or chain_file is None:
+            raise ValueError(
+                "liftover工具路径和chain文件路径必须提供。\n"
+                "可以通过以下方式设置：\n"
+                "1. 在调用hg19tohg38()时传入参数：dataset.hg19tohg38(liftover_path='...', chain_file='...')\n"
+                "2. 设置dataset.liftover和dataset.file_chain属性"
+            )
+        
+        liftover_path = str(Path(liftover_path))
+        chain_file = str(Path(chain_file))
+        
+        path_peak = self.data_root / "peaks_process"
+        path_peak.mkdir(parents=True, exist_ok=True)
 
-        file_ummap = os.path.join(path_peak, "unmap.bed")
-        file_peaks_hg38 = os.path.join(path_peak, "peaks_hg38.bed")
-        os.system(
-            f"{self.liftover} {self.file_peaks_sort} {self.file_chain} "
-            f"{file_peaks_hg38} {file_ummap}"
-        )
+        file_ummap = path_peak / "unmap.bed"
+        file_peaks_hg38 = path_peak / "peaks_hg38.bed"
+        
+        # 检查输入文件是否存在
+        if not self.file_peaks_sort.exists():
+            raise FileNotFoundError(
+                f"输入文件不存在: {self.file_peaks_sort}\n"
+                f"请确保已调用 generate_peaks_file() 方法生成 peaks 文件。"
+            )
+        
+        # 检查 liftover 工具是否存在
+        liftover_path_obj = Path(liftover_path)
+        if not liftover_path_obj.exists():
+            raise FileNotFoundError(
+                f"liftover 工具不存在: {liftover_path}\n"
+                f"请检查路径是否正确，或确保 liftover 工具已正确安装。"
+            )
+        
+        # 检查 liftover 工具是否可执行
+        if not os.access(liftover_path, os.X_OK):
+            raise PermissionError(
+                f"liftover 工具不可执行: {liftover_path}\n"
+                f"请检查文件权限，或使用 chmod +x 添加执行权限。"
+            )
+        
+        # 检查 chain 文件是否存在
+        chain_file_obj = Path(chain_file)
+        if not chain_file_obj.exists():
+            raise FileNotFoundError(
+                f"chain 文件不存在: {chain_file}\n"
+                f"请检查 chain 文件路径是否正确。"
+            )
+        
+        # 执行 liftover 命令并检查返回值
+        # 使用绝对路径确保命令正确执行
+        cmd = f'"{liftover_path}" "{self.file_peaks_sort}" "{chain_file}" "{file_peaks_hg38}" "{file_ummap}"'
+        print(f"执行 liftover 命令: {cmd}")
+        exit_code = os.system(cmd)
+        
+        # os.system 返回的是命令的退出状态码，在 Unix/Linux 上 0 表示成功
+        # 注意：os.system 的返回值是退出码，需要检查是否为 0
+        if exit_code != 0:
+            error_msg = (
+                f"liftover 命令执行失败（退出码: {exit_code}）。\n"
+                f"执行的命令: {cmd}\n"
+                f"请检查：\n"
+                f"1. liftover 工具路径是否正确: {liftover_path}\n"
+                f"2. chain 文件路径是否正确: {chain_file}\n"
+                f"3. 输入文件格式是否正确: {self.file_peaks_sort}\n"
+                f"4. 输出目录是否可写: {path_peak}"
+            )
+            # 如果输出文件不存在，提供更详细的错误信息
+            if not file_peaks_hg38.exists():
+                error_msg += f"\n5. 输出文件未生成: {file_peaks_hg38}"
+            raise RuntimeError(error_msg)
+        
+        # 检查输出文件是否生成
+        if not file_peaks_hg38.exists():
+            raise FileNotFoundError(
+                f"liftover 执行后未生成输出文件: {file_peaks_hg38}\n"
+                f"请检查 liftover 命令是否成功执行，或查看错误日志。\n"
+                f"执行的命令: {cmd}"
+            )
 
         df_hg19 = pd.read_csv(self.file_peaks_sort, sep="\t", header=None)
         df_hg19["length"] = df_hg19.iloc[:, 2] - df_hg19.iloc[:, 1]
@@ -320,7 +428,7 @@ class ATACDataset(object):
         self.adata.X = array_atac
 
     def add_promoter(
-        self, file_tss: str, flank_proximal: int = 2000, if_NB_MYCN: bool = False
+        self, file_tss: Union[str, Path], flank_proximal: int = 2000, if_NB_MYCN: bool = False
     ):
         sc.pp.normalize_total(self.adata)
         sc.pp.log1p(self.adata)
@@ -333,8 +441,8 @@ class ATACDataset(object):
         df_tss["tss_end"] = df_tss["tss"] + 2000
         df_tss["proximal_start"] = df_tss["tss"] - flank_proximal
         df_tss["proximal_end"] = df_tss["tss"] + flank_proximal
-        file_promoter = os.path.join(self.path_process, "promoter.txt")
-        file_proximal = os.path.join(self.path_process, "proximal.txt")
+        file_promoter = self.path_process / "promoter.txt"
+        file_proximal = self.path_process / "proximal.txt"
         df_promoter = df_tss.loc[
             :, ["chrom", "tss_start", "tss_end", "symbol", "ensg_id", "strand"]
         ]
@@ -348,7 +456,7 @@ class ATACDataset(object):
         self.generate_peaks_file()
 
         # add promoter to adata
-        file_peaks_promoter = os.path.join(self.path_process, "peaks_promoter.txt")
+        file_peaks_promoter = self.path_process / "peaks_promoter.txt"
         os.system(
             f"{self.bedtools} intersect -a {self.file_peaks_sort} -b {file_promoter} -wao "
             f"> {file_peaks_promoter}"
@@ -407,7 +515,7 @@ class ATACDataset(object):
         self.adata_merge = adata_merge
 
         # proximal regulation
-        file_peaks_proximal = os.path.join(self.path_process, "peaks_proximal.txt")
+        file_peaks_proximal = self.path_process / "peaks_proximal.txt"
         os.system(
             f"{self.bedtools} intersect -a {self.file_peaks_sort} -b {file_proximal} -wao "
             f"> {file_peaks_proximal}"
@@ -450,10 +558,11 @@ class ATACDataset(object):
         return
 
     def build_graph(
-        self, path_interaction: str, file_suffix: str, sel_interaction: str = "PO"
+        self, path_interaction: Union[str, Path], file_suffix: str, sel_interaction: str = "PO"
     ):
-        file_pp = os.path.join(path_interaction, "PP" + file_suffix + ".txt")
-        file_po = os.path.join(path_interaction, "PO" + file_suffix + ".txt")
+        path_interaction = Path(path_interaction)
+        file_pp = path_interaction / f"PP{file_suffix}.txt"
+        file_po = path_interaction / f"PO{file_suffix}.txt"
         if sel_interaction == "PP" or sel_interaction == "ALL":
             df_pp_pre = pd.read_csv(file_pp, sep="\t", header=None)
             df_pp_pre = df_pp_pre.loc[
@@ -470,7 +579,7 @@ class ATACDataset(object):
             df_pp = pd.merge(left=df_pp_pre, right=df_gene_peaks, on="gene")
             df_pp = df_pp.loc[:, ["region1", "region2"]]
         if sel_interaction == "PO" or sel_interaction == "ALL":
-            file_po_peaks = os.path.join(self.path_process, "peaks_PO.bed")
+            file_po_peaks = self.path_process / "peaks_PO.bed"
             os.system(
                 f"{self.bedtools} intersect -a {self.file_peaks_sort} -b {file_po} -wao "
                 f"> {file_po_peaks}"
@@ -504,8 +613,8 @@ class ATACDataset(object):
 
         return
 
-    def add_eqtl(self, file_eqtl: str):
-        file_eqtl_peaks = os.path.join(self.path_process, "peaks_eQTL.bed")
+    def add_eqtl(self, file_eqtl: Union[str, Path]):
+        file_eqtl_peaks = self.path_process / "peaks_eQTL.bed"
         os.system(
             f"{self.bedtools} intersect -a {self.file_peaks_sort} -b {file_eqtl} -wao "
             f"> {file_eqtl_peaks}"
@@ -531,7 +640,7 @@ class ATACDataset(object):
             subset=["region1", "region2"], keep="first"
         )
 
-    def build_tf_graph(self, file_tf: str):
+    def build_tf_graph(self, file_tf: Union[str, Path]):
         df_tf = pd.read_csv(file_tf, sep="\t", header=None)
         df_tf = df_tf.iloc[:, :2]
         df_tf.columns = ["TF", "TargetGene"]
@@ -667,32 +776,34 @@ class ATACGraphDataset(InMemoryDataset):
 
 def prepare_model_input(
     adata_atac,
-    path_data_root: str,
+    path_data_root: Union[str, Path],
     file_atac: str,
     df_rna_celltype: DataFrame,
-    path_eqtl: str,
+    path_eqtl: Union[str, Path],
     Hi_C_file_suffix: str = "",
     min_features: Optional[float] = None,
     max_features: Optional[float] = None,
     min_percent: Optional[float] = 0.05,
     hg19tohg38: bool = False,
+    liftover_path: Optional[Union[str, Path]] = None,
+    chain_file: Optional[Union[str, Path]] = None,
     if_NB: bool = False,
     deepen_data: bool = True,
     use_additional_tf=False,
     tissue_cuttof=3,
 ):
+    path_data_root = Path(path_data_root)
+    path_data_root.mkdir(parents=True, exist_ok=True)
 
-    if not os.path.exists(path_data_root):
-        os.mkdir(path_data_root)
+    # 获取数据目录路径
+    data_dir = _get_data_dir()
+    file_chrom_hg38 = data_dir / "hg38.chrom.sizes"
 
-    # Try to find data files - user should provide path or set environment variable
-    # For now, we'll try relative path first, then check environment variable
-    basepath = os.path.abspath(__file__)
-    package_dir = os.path.dirname(
-        os.path.dirname(basepath)
-    )  # Go up to scregat package dir
-    data_dir = os.environ.get("SCREGAT_DATA_DIR", os.path.join(package_dir, "data"))
-    file_chrom_hg38 = os.path.join(data_dir, "hg38.chrom.sizes")
+    if not file_chrom_hg38.exists():
+        raise FileNotFoundError(
+            f"数据文件未找到: {file_chrom_hg38}\n"
+            f"请确保项目根目录下的 data/ 目录存在，并包含所需的数据文件。"
+        )
 
     print("only dataset_obj ...")
 
@@ -705,7 +816,7 @@ def prepare_model_input(
 
     # dataset_ATAC.adata.obs['celltype'] = dataset_ATAC.adata.obs['seurat_annotations']
     if hg19tohg38:
-        dataset_ATAC.hg19tohg38()
+        dataset_ATAC.hg19tohg38(liftover_path=liftover_path, chain_file=chain_file)
     vec_num_feature = np.array(np.sum(dataset_ATAC.adata.X != 0, axis=1))
     if min_features is None:
         default_min = int(np.percentile(vec_num_feature, 1))
@@ -724,7 +835,9 @@ def prepare_model_input(
     # add RNA-seq data
     dataset_ATAC.df_rna = df_rna_celltype
 
-    file_gene_hg38 = os.path.join(data_dir, "genes.protein.tss.tsv")
+    file_gene_hg38 = data_dir / "genes.protein.tss.tsv"
+    if not file_gene_hg38.exists():
+        raise FileNotFoundError(f"基因TSS文件未找到: {file_gene_hg38}")
     dataset_ATAC.add_promoter(file_gene_hg38, if_NB_MYCN=if_NB)
     if if_NB:
         print(dataset_ATAC.df_rna.loc[:, "MYCN"])
@@ -735,19 +848,26 @@ def prepare_model_input(
     dataset_ATAC.build_graph(
         path_hic, file_suffix=Hi_C_file_suffix, sel_interaction="ALL"
     )
+    path_eqtl = Path(path_eqtl)
+    if not path_eqtl.exists():
+        raise FileNotFoundError(f"eQTL文件未找到: {path_eqtl}")
     dataset_ATAC.add_eqtl(path_eqtl)
     # df_graph_PLAC = dataset_ATAC.df_graph
 
     # TF
     print("processing TF ...")
-    path_tf = os.path.join(data_dir, "trrust_rawdata.human.tsv")
-    path_tf2 = os.path.join(data_dir, "TF_Gene_tissue_cutoff1.csv")
+    path_tf = data_dir / "trrust_rawdata.human.tsv"
+    path_tf2 = data_dir / "TF_Gene_tissue_cutoff1.csv"
     if use_additional_tf:
         print("additional TF...")
+        if not path_tf2.exists():
+            raise FileNotFoundError(f"TF文件未找到: {path_tf2}")
         tf_base = pd.read_csv(path_tf2, index_col=0)
         tf_base = tf_base[tf_base.tissue_count > tissue_cuttof]
         tf_base = tf_base.iloc[:, :2]
         tf_base.columns = ["TF", "TargetGene"]
+        if not path_tf.exists():
+            raise FileNotFoundError(f"TF文件未找到: {path_tf}")
         df_tf = pd.read_csv(path_tf, sep="\t", header=None)
         df_tf = df_tf.iloc[:, :2]
         df_tf.columns = ["TF", "TargetGene"]
@@ -755,6 +875,8 @@ def prepare_model_input(
         print("total candidate tf-gene: ", len(df_tf))
         dataset_ATAC.build_tf_graph1(df_tf)
     else:
+        if not path_tf.exists():
+            raise FileNotFoundError(f"TF文件未找到: {path_tf}")
         dataset_ATAC.build_tf_graph(path_tf)
     # df_graph_TF = dataset_ATAC.df_tf
 
