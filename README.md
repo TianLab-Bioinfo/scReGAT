@@ -26,45 +26,27 @@ _Figure 1: An overview of the scReGAT framework, from data integration and graph
 
 ## Installation
 
-### Dependencies
-
-First, create a conda environment with Python 3.10.
-
 ```bash
+
 conda create -n scregat python=3.10 -y
 conda activate scregat
-```
 
-Next, install the required deep learning libraries.
-\*PyTorch:
-This example is for CUDA 11.8. Please adjust the command according to your specific CUDA version. For more options, visit the [PyTorch website](https://pytorch.org/get-started/locally/).
+conda install -y pandas=1.5.3 numpy=1.24 scipy=1.11.4 scikit-learn statsmodels numba matplotlib seaborn pybedtools
 
-```bash
 pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1
-```
 
-PyG (PyTorch Geometric):
-Follow the official instructions based on your PyTorch and CUDA versions: [PyG Installation](https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html).
-
-```bash
 pip install torch_geometric
-```
 
-### Install scReGAT
-
-Clone the repository and install the package using pip.
-
-```bash
 git clone https://github.com/TianLab-Bioinfo/scReGAT.git
 cd scReGAT
+
 pip install .
 ```
-recommend install pybedtools using `conda install --channel conda-forge --channel bioconda pybedtools`
 
 ## Qucik Start
 
 1. Download `data.zip` from [here](https://drive.google.com/file/d/1tG2u2foUMJkunb-LBt_mhtm-nN3s59E3/view?usp=sharing) and unzip it to the `data/` directory.
-2. Download `data.tar.gz` from [here](https://drive.google.com/file/d/1eO3KzlA6ZK_v2ogYejiX1xBPZwXVOGcK/view?usp=sharing) and unzip it to the `data/` directory.
+2. Download the gold standard data files required for reproduction from [here](https://drive.google.com/file/d/1eO3KzlA6ZK_v2ogYejiX1xBPZwXVOGcK/view?usp=sharing)
 
 Please see `notebook/` for examples.
 
