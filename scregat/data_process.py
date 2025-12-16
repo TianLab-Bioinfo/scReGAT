@@ -29,18 +29,23 @@ def _get_data_dir() -> Path:
     """
     获取数据目录的路径。
     
-    使用相对于包目录的 data/ 目录（项目根目录下的 data/ 文件夹）。
+    使用相对于项目根目录的 data/ 目录。
     
     Returns:
-        Path: 数据目录的路径对象
+        Path: 数据目录的路径对象（相对于当前工作目录）
     """
-    # 获取当前文件的目录（scregat/）
+    # 获取当前文件的绝对路径，然后找到项目根目录
     current_file = Path(__file__).resolve()
     package_dir = current_file.parent  # scregat/
     project_root = package_dir.parent  # scReGAT/
-    data_dir = project_root / "data"
-    
-    return data_dir
+    # 计算data目录的绝对路径
+    data_dir_abs = project_root / "data"
+    # 返回相对于当前工作目录的相对路径
+    try:
+        return Path(os.path.relpath(data_dir_abs))
+    except ValueError:
+        # 如果无法转换为相对路径（跨驱动器等），返回绝对路径
+        return data_dir_abs
 
 
 def sum_counts(adata, by="celltype", use_marker_genes=True, marker_gene_num=300):
@@ -179,13 +184,7 @@ class ATACDataset(object):
         if bedtools_path:
             self.bedtools = bedtools_path
         else:
-            # 如果PATH中找不到，尝试使用scReGAT环境的默认路径
-            default_bedtools = "/opt/conda/envs/scReGAT/bin/bedtools"
-            if Path(default_bedtools).exists():
-                self.bedtools = default_bedtools
-            else:
-                # 最后回退到系统命令（假设在PATH中）
-                self.bedtools = "bedtools"
+            self.bedtools = "bedtools"
         self.liftover = None  # liftover工具路径，如需要可通过属性设置
         self.file_chain = None  # liftover chain文件路径，如需要可通过属性设置
         self.generate_peaks_file()
