@@ -46,7 +46,7 @@ pip install .
 ## Qucik Start
 
 1. Download `data.zip` from [here](https://drive.google.com/file/d/1tG2u2foUMJkunb-LBt_mhtm-nN3s59E3/view?usp=sharing) and unzip it to the `data/` directory.
-2. Download the gold standard data files required for reproduction from [here](https://drive.google.com/file/d/1eO3KzlA6ZK_v2ogYejiX1xBPZwXVOGcK/view?usp=sharing)
+2. Download the gold standard data files required for reproduction from [here](https://drive.google.com/file/d/1eO3KzlA6ZK_v2ogYejiX1xBPZwXVOGcK/view?usp=sharing) and unzip it to the `reproduce_data/` directory.
 
 Please see `notebook/` for examples.
 
